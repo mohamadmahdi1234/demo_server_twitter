@@ -20,7 +20,7 @@ import re
 
 # read configs
 config = configparser.ConfigParser()
-config.read('api\config.ini')
+config.read('config.ini')
 sid_obj= SentimentIntensityAnalyzer()
 api_key = config['twitter']['api_key']
 print(api_key)
