@@ -1,4 +1,6 @@
 # Importing necessary libraries
+!git clone --depth=1 https://github.com/twintproject/twint.git
+!cd /content/twint && pip3 install . -r requirements.txt
 from itertools import count
 from statistics import mode
 import string
