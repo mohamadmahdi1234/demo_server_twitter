@@ -72,6 +72,7 @@ threadpoolctl==3.1.0
 tqdm==4.64.0
 tweepy==4.10.0
 twint
+
 typing_extensions==4.3.0
 tzdata==2022.1
 ujson==5.4.0
