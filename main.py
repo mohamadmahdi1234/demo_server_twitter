@@ -72,6 +72,10 @@ def analys(score):
         return "positive"
     if score == 0:
         return "neutral"
+
+@app.get("/")
+def hello():
+    return {"message":"Hello TutLinks.com"} 
 # Setting up the home route
 @app.get("/prediction/")
 def read_root(request: Request):
