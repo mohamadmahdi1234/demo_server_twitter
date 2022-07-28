@@ -1,11 +1,11 @@
 # Importing necessary libraries
-
+from cProfile import label
 from itertools import count
 from statistics import mode
 import string
 import uvicorn
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import twint
+
 import datetime
 import pickle
 from pydantic import BaseModel
@@ -18,8 +18,23 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import re
 
-
+# read configs
+config = configparser.ConfigParser()
+config.read('api\config.ini')
 sid_obj= SentimentIntensityAnalyzer()
+api_key = config['twitter']['api_key']
+print(api_key)
+api_key_secret = config['twitter']['api_key_secret']
+
+access_token = config['twitter']['access_token']
+access_token_secret = config['twitter']['access_token_secret']
+
+client=tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAAAf4fAEAAAAA4JmaNHkSvMzjRJxAU2GiZMWdxNc%3DzyO6LOVWvzewvg0D0xX6MTAfYkxxnKb1nisnrf0QogADLlSDEA", consumer_key=api_key,consumer_secret= api_key_secret,access_token=access_token,access_token_secret= access_token_secret, wait_on_rate_limit=True)
+# authentication
+auth = tweepy.OAuthHandler(api_key, api_key_secret)
+auth.set_access_token(access_token, access_token_secret)
+
+api = tweepy.API(auth)
 
 def getOnlyDate(dt):
     return dt.strftime('%Y-%m-%d')
@@ -73,51 +88,55 @@ def analys(score):
         return "positive"
     if score == 0:
         return "neutral"
-
-@app.get("/")
-def hello():
-    return {"message":"Hello TutLinks.com"} 
 # Setting up the home route
 @app.get("/prediction/")
 def read_root(request: Request):
-    
-    #public_tweets1 = api.search_full_archive(
+    public_tweets1=tweepy.Cursor(api.search_tweets, q=request.query_params['query']).items(int(request.query_params['num']))
+   # public_tweets1 = api.search_full_archive(
        # label='FullArchive',
              # query="#"+request.query_params['query'],
              # )
-   # public_tweets2 = tweepy.Paginator(client.search_recent_tweets, query="#"+request.query_params['query']+" -is:retweet ",
-                               #tweet_fields=["id", "author_id",  "created_at", "text", "source", "lang", "in_reply_to_user_id", "conversation_id", "public_metrics", "referenced_tweets", "reply_settings"],
+    #public_tweets2 = tweepy.Paginator(client.search_all_tweets,label="FullArchive", query="#"+request.query_params['query'] ,
+        #tweet_fields=["id", "author_id",  "created_at", "text", "source", "lang", "in_reply_to_user_id", "conversation_id", "public_metrics", "referenced_tweets", "reply_settings"],
         #user_fields=["name", "username", "location", "verified", "description", "created_at"],
         #place_fields=["full_name", "id", "country", "country_code", "geo", "name", "place_type"],
-        #expansions="geo.place_id,author_id", max_results=100).flatten(limit=50)
-    x=0
-    
-    # create dataframe
-    c = twint.Config()
-    c.Limit = request.query_params['num']
-    c.Search=request.query_params['query']
-    c.Pandas = True
-
-    twint.run.Search(c)
-
-    df1 = twint.storage.panda.Tweets_df
+        #expansions="geo.place_id,author_id",max_results=100).flatten(limit=5)
     columns = ['Time', 'User', 'Tweet']
-    #data = []
-    #for tweet in public_tweets:
-     #data.append([tweet.created_at, tweet.user.screen_name, tweet.text])
-    #print(len(data))
+    data = []
+    for tweet in public_tweets1:
+        data.append([tweet.created_at, tweet.user.screen_name, tweet.text])
+    print("lk")
+   
+    # create dataframe
+    #c = twint.Config()
+    #c.Limit = request.query_params['num']
+    #c.Search=request.query_params['query']
+    #c.Pandas = True
 
-    df = pd.DataFrame()
-    df['Time1']=df1['created_at']
-    df['User']=df1['username']
-    df['Tweet']=df1['tweet']
+    #twint.run.Search(c)
+
+    #df1 = twint.storage.panda.Tweets_df
+    
+    
+        
+    x=0
+
+    df = pd.DataFrame(data, columns=columns)
+    print(df)
+    
+    #df['Time1']=df1['created_at']
+    #df['User']=df1['username']
+    
+    #df['Tweet']=df1['tweet']
     
     df['Tweet']=df['Tweet'].apply(cleanText)
     
     df['polarity']=df['Tweet'].apply(getPolarity)
     df['analysis']=df['polarity'].apply(analys)
-    df['Time']=df['Time1'].apply(toTime)
+    #df['Time']=df['Time1'].apply(toTime)
     df['Date']=df['Time'].apply(getOnlyDate)
+    
+    
     qq=df.groupby(['analysis'])['polarity'].count()
     ff = df.groupby(['Time'])['polarity'].mean()
     for_7_day = df.groupby(['Date'])['polarity'].mean()
@@ -128,9 +147,12 @@ def read_root(request: Request):
     
     
     allWords= ' '.join([twts for twts in df['Tweet']])
-    p_c =str( pie.iloc[2]['count'])
-    n_c=str(pie.iloc[0]['count'])
-    neu_c=str(pie.iloc[1]['count'])
+    size_elem = len(pie.index)
+    print(size_elem)
+    
+    p_c =str( pie.iloc[2]['count'])if (size_elem==3) else "0"
+    n_c= str(pie.iloc[0]['count']) if (size_elem>=2) else "0"
+    neu_c=str(pie.iloc[1]['count']) if(size_elem>=1)  else "0"
     
     counts = dict()
     words = allWords.split()
