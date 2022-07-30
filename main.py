@@ -36,7 +36,7 @@ auth = tweepy.OAuthHandler(api_key, api_key_secret)
 auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth)
-client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAAJqOfQEAAAAAZ7eRR4PamQlaCWI%2FzPAjQPJm5YQ%3DKgTWMSyCqvvENddxQyaMQNhUB5W5ZTvAyVbrxFDNfkDaniA7sV",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret)
+client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAANmGfQEAAAAAvOLvSxGRHXCSyQHKs%2BmQRu3ma1A%3DfGjdh6ytI2xsdUsb1KgMF9ssTd2FUvIyUsWTpL8qRV1KFwVBye",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret)
 def getOnlyDate(dt):
     return dt.strftime('%Y-%m-%d')
 
