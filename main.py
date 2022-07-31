@@ -132,9 +132,9 @@ def read_root(request: Request):
         allWords= ' '.join([twts for twts in df['Tweet']])
         size_elem = len(pie.index)
         print(size_elem)
-        p_c =str( pie.iloc[2]['count'])if (size_elem==3) else "0"
+        neu_c=str( pie.iloc[2]['count'])if (size_elem==3) else "0"
         n_c= str(pie.iloc[1]['count']) if (size_elem>=2) else "0"
-        neu_c=str(pie.iloc[0]['count']) if(size_elem>=1)  else "0"
+        p_c=str(pie.iloc[0]['count']) if(size_elem>=1)  else "0"
         counts = dict()
         words = allWords.split()
 
