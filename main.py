@@ -128,13 +128,15 @@ def read_root(request: Request):
         gg=pd.DataFrame({'Time':ff.index, 'polarity':ff.values})
         for_send=pd.DataFrame({'Time':for_7_day.index, 'polarity':for_7_day.values})
         pie=pd.DataFrame({'analysis':qq.index, 'count':qq.values})
+       
+        pie=pie.set_index('analysis')
         print(pie)
         allWords= ' '.join([twts for twts in df['Tweet']])
         size_elem = len(pie.index)
         print(size_elem)
-        neu_c=str( pie.iloc[2]['count'])if (size_elem==3) else "0"
-        n_c= str(pie.iloc[1]['count']) if (size_elem>=2) else "0"
-        p_c=str(pie.iloc[0]['count']) if(size_elem>=1)  else "0"
+        p_c=str( pie.loc['positive']['count'])if ('positive' in pie.index) else "0"
+        n_c= str(pie.loc['negative']['count']) if ('negative' in pie.index) else "0"
+        neu_c=str(pie.loc['neutral']['count']) if('neutral' in pie.index)  else "0"
         counts = dict()
         words = allWords.split()
 
