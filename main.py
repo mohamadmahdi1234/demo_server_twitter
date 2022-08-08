@@ -209,8 +209,8 @@ def read_root(request: Request):
 
 
 @app.get("/")
-def read_root(request: Request):
-    print("hello world")
+def get_root():
+  return {'message': 'this is the root message'}
 
 # Setting up the prediction route
 @app.post("/prediction/")
