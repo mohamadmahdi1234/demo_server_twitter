@@ -1,5 +1,4 @@
 # Importing necessary libraries
-from asyncio.windows_events import NULL
 from cProfile import label
 from itertools import count
 from statistics import mode
@@ -7,7 +6,7 @@ import sys, os
 import string
 import uvicorn
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from twython import Twython
+
 import datetime
 import pickle
 from pydantic import BaseModel
@@ -19,8 +18,7 @@ from textblob import TextBlob
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
-import logging
-logger = logging.getLogger('ftpuploader')
+
 # read configs
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -31,15 +29,14 @@ api_key_secret = config['twitter']['api_key_secret']
 
 access_token = config['twitter']['access_token']
 access_token_secret = config['twitter']['access_token_secret']
-twitter = Twython(app_key=api_key, app_secret=api_key_secret, oauth_token=access_token, oauth_token_secret=access_token_secret)
+
 #client=tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAAAf4fAEAAAAA4JmaNHkSvMzjRJxAU2GiZMWdxNc%3DzyO6LOVWvzewvg0D0xX6MTAfYkxxnKb1nisnrf0QogADLlSDEA", consumer_key=api_key,consumer_secret= api_key_secret,access_token=access_token,access_token_secret= access_token_secret, wait_on_rate_limit=True)
 # authentication
 auth = tweepy.OAuthHandler(api_key, api_key_secret)
 auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth)
-client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAAMEGfgEAAAAAJkYph5vmC2ZoOqv38jqwpmyEaSs%3Ddn0f6DXENk7ud9n7KqKjyC191ajrtBmgSgy21LfWvcNoSK06O8",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret,wait_on_rate_limit=True)
-#client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAANmGfQEAAAAAvOLvSxGRHXCSyQHKs%2BmQRu3ma1A%3DfGjdh6ytI2xsdUsb1KgMF9ssTd2FUvIyUsWTpL8qRV1KFwVBye",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret,wait_on_rate_limit=True)
+client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAANmGfQEAAAAAvOLvSxGRHXCSyQHKs%2BmQRu3ma1A%3DfGjdh6ytI2xsdUsb1KgMF9ssTd2FUvIyUsWTpL8qRV1KFwVBye",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret,wait_on_rate_limit=True)
 def getOnlyDate(dt):
     return dt.strftime('%Y-%m-%d')
 
@@ -76,24 +73,6 @@ class Candidate(BaseModel):
     etest_p: float
     msc: float
 
-def only_positive(txt):
-    if(txt=="positive"):
-        return 1.0
-    return 0.0
-def only_negative(txt):
-    if(txt=="negative"):
-        return 1.0
-    return 0.0
-def only_neutral(txt):
-    if(txt=="neutral"):
-        return 1.0
-    return 0.0
-def get_Date_hour(time):
-    st=time.strftime('%d %B,%Y _ Hour %H:%M:%S')
-    print(st)
-    for_return=st.split(":")[0]
-    return for_return
-
 def toTime(ms):
     return datetime.datetime.fromtimestamp(ms / 1000)
 
@@ -104,62 +83,41 @@ def cleanText(txt):
     txt=re.sub(r'\s+https?:\/\/.*\s*','',txt)
     return txt
 def analys(score):
-    if score<=-0.05:
+    if score<0:
         return "negative"
-    elif score>=0.05:
+    if score>0:
         return "positive"
-    else:
+    if score == 0:
         return "neutral"
 # Setting up the home route
 @app.get("/prediction/")
 def read_root(request: Request):
     try:
-        users = client.get_users(usernames=['GouriCuler'], user_fields=['profile_image_url'])
-        for user in users.data:
-            print(user.id)
-        tweets  = client.search_recent_tweets(query=request.query_params['query'] ,
-        media_fields=['preview_image_url', 'url'],
-        tweet_fields=["id","context_annotations", "author_id",  "created_at", "text", "source", "lang", "in_reply_to_user_id", "conversation_id", "public_metrics", "referenced_tweets", "reply_settings","geo"],
-        user_fields=["name", "username", "location", "verified", "description", "created_at","profile_image_url"],
+        #id = 57741058
+        #print(client.get_user(id=id))
+        print("hellllo")
+        query = 'ebadipour'
+        tweets  = tweepy.Paginator(client.search_recent_tweets, query=request.query_params['query'] ,
+        tweet_fields=["id", "author_id",  "created_at", "text", "source", "lang", "in_reply_to_user_id", "conversation_id", "public_metrics", "referenced_tweets", "reply_settings"],
+        user_fields=["name", "username", "location", "verified", "description", "created_at"],
         place_fields=["full_name", "id", "country", "country_code", "geo", "name", "place_type"],
-        expansions=["geo.place_id,author_id","entities.mentions.username","attachments.media_keys"],max_results=100)
+        expansions="geo.place_id,author_id",max_results=100).flatten(limit=int(request.query_params['num']))
         #for tweet in tweets:
             #print(client.get_user(id=tweet.author_id).data.name)
         
         #public_tweets1=tweepy.Cursor(api.search_tweets, q=request.query_params['query']).items(int(request.query_params['num']))
         #public_tweets1=api.home_timeline()
-        #print(tweets.data)
-        columns = ['Time', 'User', 'Tweet','img_url','tweet_url']
+
+        columns = ['Time', 'User', 'Tweet']
         data = []
-        users={}
-        c=0
-        
-        users.update({u["id"]: u for u in tweets.includes['users']})
-        
-
-        
-        print(len(users))
-        print("//////////////////////")
-        x=0
-        for tweet in tweets.data:
-            x=x+1
-            print(tweet.text)
-            user = users[tweet.author_id]
-            ur = 'https://twitter.com/'+user.username+'/status/'+str(tweet.id)
-            print(ur)
-            if('full_text' in tweet):
-                print("here")
-                data.append([tweet.created_at,user.username, tweet.full_text,user.profile_image_url,ur])
-            else:
-                data.append([tweet.created_at,user.username, tweet.text,user.profile_image_url,ur])
-
-            
-            
+        for tweet in tweets:
+            name =client.get_user(id=tweet.author_id).data.name
+           
+            data.append([tweet.created_at,name , tweet.text])
+        print(data) 
         
         df = pd.DataFrame(data, columns=columns)
-        
-        df=df.head(int(request.query_params['num']))
-        
+        print(df)
         df['Tweet']=df['Tweet'].apply(cleanText)
         df['polarity']=df['Tweet'].apply(getPolarity)
         df['analysis']=df['polarity'].apply(analys)
@@ -170,16 +128,7 @@ def read_root(request: Request):
         gg=pd.DataFrame({'Time':ff.index, 'polarity':ff.values})
         for_send=pd.DataFrame({'Time':for_7_day.index, 'polarity':for_7_day.values})
         pie=pd.DataFrame({'analysis':qq.index, 'count':qq.values})
-        df['Hour_Date']=df['Time'].apply(get_Date_hour)
-        df['positive_count']=df['analysis'].apply(only_positive)
-        df['negative_count']=df['analysis'].apply(only_negative)
-        df['neutral_count']=df['analysis'].apply(only_neutral)
-        for_daily_hour_positive=df.groupby(['Hour_Date'])['positive_count'].sum()
-        for_daily_hour_negative=df.groupby(['Hour_Date'])['negative_count'].sum()
-        for_daily_hour_neutral=df.groupby(['Hour_Date'])['neutral_count'].sum()
-        mile_positive=pd.DataFrame({'Time':for_daily_hour_positive.index, 'count':for_daily_hour_positive.values})
-        mile_negative=pd.DataFrame({'Time':for_daily_hour_negative.index, 'count':for_daily_hour_negative.values})
-        mile_neutral=pd.DataFrame({'Time':for_daily_hour_neutral.index, 'count':for_daily_hour_neutral.values})
+       
         pie=pie.set_index('analysis')
         print(pie)
         allWords= ' '.join([twts for twts in df['Tweet']])
@@ -197,20 +146,18 @@ def read_root(request: Request):
             else:
                 counts[word] = 1
     
-        return {"data": df , "count": counts,"mile_positive":mile_positive,"mile_negative":mile_negative,"mile_neutral":mile_neutral,"control":gg,"seven":for_send,"positive_count":p_c,"negative_count":n_c,"neutral_count":neu_c}
+        return {"data": df , "count": counts,"control":gg,"seven":for_send,"positive_count":p_c,"negative_count":n_c,"neutral_count":neu_c}
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(exc_type, fname, exc_tb.tb_lineno)
-        print( repr(e))
+        print(e)
         raise HTTPException(status_code=404, detail="GOT A PROBLEM HERE...")
 
 
 
 
-@app.get("/")
-def get_root():
-  return {'message': 'this is the root message'}
+
 
 # Setting up the prediction route
 @app.post("/prediction/")
