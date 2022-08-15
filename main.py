@@ -5,6 +5,7 @@ from statistics import mode
 import sys, os
 import string
 import uvicorn
+from PIL import Image,ImageDraw,ImageFont
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from fastapi.responses import FileResponse
 import datetime
@@ -199,7 +200,7 @@ async def read_root(request: Request):
 
         twitter_mask = imageio.imread('https://raw.githubusercontent.com/rasbt/datacollect/master/dataviz/twitter_cloud/twitter_mask.png')
         wordcloud = WordCloud(
-                      
+                      font_path='cabin-sketch-v1.02/CabinSketch-Bold.ttf',
                       stopwords=STOPWORDS,
                       background_color='white',
                       width=1800,
