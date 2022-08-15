@@ -199,7 +199,7 @@ async def read_root(request: Request):
 
         twitter_mask = imageio.imread('https://raw.githubusercontent.com/rasbt/datacollect/master/dataviz/twitter_cloud/twitter_mask.png')
         wordcloud = WordCloud(
-                      font_path='cabin-sketch-v1.02\CabinSketch-Bold.ttf',
+                      
                       stopwords=STOPWORDS,
                       background_color='white',
                       width=1800,
