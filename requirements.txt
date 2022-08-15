@@ -31,6 +31,7 @@ gunicorn==20.1.0
 h11==0.13.0
 httptools==0.4.0
 idna==3.3
+imageio==2.21.1
 itsdangerous==2.1.2
 Jinja2==3.1.2
 joblib==1.1.0
@@ -80,4 +81,5 @@ uvicorn==0.17.6
 vaderSentiment==3.3.2
 watchgod==0.8.2
 websockets==10.3
+wordcloud==1.8.2.2
 yarl==1.7.2

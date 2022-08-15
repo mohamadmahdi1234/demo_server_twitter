@@ -6,9 +6,11 @@ import sys, os
 import string
 import uvicorn
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
+from fastapi.responses import FileResponse
 import datetime
 import pickle
+from wordcloud import WordCloud, STOPWORDS
+import imageio
 from pydantic import BaseModel
 from fastapi import FastAPI,Request,HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -108,9 +110,16 @@ def analys(score):
         return "positive"
     else:
         return "neutral"
+
+@app.get("/image")
+async def main():
+    return FileResponse("my_twitter_wordcloud_1.png")
+
+
+
 # Setting up the home route
 @app.get("/prediction/")
-def read_root(request: Request):
+async def read_root(request: Request):
     try:
         users = client.get_users(usernames=['GouriCuler'], user_fields=['profile_image_url'])
         for user in users.data:
@@ -181,6 +190,27 @@ def read_root(request: Request):
         pie=pie.set_index('analysis')
         print(pie)
         allWords= ' '.join([twts for twts in df['Tweet']])
+
+        no_urls_no_tags = " ".join([word for word in allWords.split()
+                            if 'http' not in word
+                                and not word.startswith('@')
+                                and word != 'RT'
+                            ])
+
+        twitter_mask = imageio.imread('https://raw.githubusercontent.com/rasbt/datacollect/master/dataviz/twitter_cloud/twitter_mask.png')
+        wordcloud = WordCloud(
+                      font_path='cabin-sketch-v1.02\CabinSketch-Bold.ttf',
+                      stopwords=STOPWORDS,
+                      background_color='white',
+                      width=1800,
+                      height=1400,
+                      mask=twitter_mask
+            ).generate(no_urls_no_tags)
+        plt.imshow(wordcloud)
+        plt.axis("off")
+        wordcloud.to_file('my_twitter_wordcloud_1.png')
+        print("//////////////////////////////////////////@@@@@@@@@@@@@@@@")
+        print(allWords)
         size_elem = len(pie.index)
         print(size_elem)
         p_c=str( pie.loc['positive']['count'])if ('positive' in pie.index) else "0"
