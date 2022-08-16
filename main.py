@@ -123,8 +123,7 @@ async def main():
 async def read_root(request: Request):
     try:
         users = client.get_users(usernames=['GouriCuler'], user_fields=['profile_image_url'])
-        for user in users.data:
-            print(user.id)
+        
         tweets  = client.search_recent_tweets(query=request.query_params['query'] ,
         media_fields=['preview_image_url', 'url'],
         tweet_fields=["id","context_annotations", "author_id",  "created_at", "text", "source", "lang", "in_reply_to_user_id", "conversation_id", "public_metrics", "referenced_tweets", "reply_settings","geo"],
@@ -146,17 +145,16 @@ async def read_root(request: Request):
         
 
         
-        print(len(users))
-        print("//////////////////////")
+        
         x=0
         for tweet in tweets.data:
             x=x+1
-            print(tweet.text)
+            
             user = users[tweet.author_id]
             ur = 'https://twitter.com/'+user.username+'/status/'+str(tweet.id)
-            print(ur)
+            
             if('full_text' in tweet):
-                print("here")
+                
                 data.append([tweet.created_at,user.username, tweet.full_text,user.profile_image_url,ur])
             else:
                 data.append([tweet.created_at,user.username, tweet.text,user.profile_image_url,ur])
@@ -189,7 +187,7 @@ async def read_root(request: Request):
         mile_negative=pd.DataFrame({'Time':for_daily_hour_negative.index, 'count':for_daily_hour_negative.values})
         mile_neutral=pd.DataFrame({'Time':for_daily_hour_neutral.index, 'count':for_daily_hour_neutral.values})
         pie=pie.set_index('analysis')
-        print(pie)
+        
         allWords= ' '.join([twts for twts in df['Tweet']])
 
         no_urls_no_tags = " ".join([word for word in allWords.split()
@@ -210,10 +208,10 @@ async def read_root(request: Request):
         plt.imshow(wordcloud)
         plt.axis("off")
         wordcloud.to_file('my_twitter_wordcloud_1.png')
-        print("//////////////////////////////////////////@@@@@@@@@@@@@@@@")
-        print(allWords)
+        
+        
         size_elem = len(pie.index)
-        print(size_elem)
+        
         p_c=str( pie.loc['positive']['count'])if ('positive' in pie.index) else "0"
         n_c= str(pie.loc['negative']['count']) if ('negative' in pie.index) else "0"
         neu_c=str(pie.loc['neutral']['count']) if('neutral' in pie.index)  else "0"
