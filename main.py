@@ -40,7 +40,7 @@ auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth)
 #client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAAMEGfgEAAAAAJkYph5vmC2ZoOqv38jqwpmyEaSs%3Ddn0f6DXENk7ud9n7KqKjyC191ajrtBmgSgy21LfWvcNoSK06O8",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret,wait_on_rate_limit=True)
-client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAANmGfQEAAAAAvOLvSxGRHXCSyQHKs%2BmQRu3ma1A%3DfGjdh6ytI2xsdUsb1KgMF9ssTd2FUvIyUsWTpL8qRV1KFwVBye",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret,wait_on_rate_limit=True)
+client = tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAAMEGfgEAAAAAP707CqP6NrIWaLWxuaYNlAJ4OjA%3DUVOxA6YlGuJ2b2Xp4iCpC6GewAfIGAchPgRa2G61rZ4baMWlfU",consumer_key= api_key,consumer_secret= api_key_secret,access_token= access_token,access_token_secret= access_token_secret,wait_on_rate_limit=True)
 def getOnlyDate(dt):
     return dt.strftime('%Y-%m-%d')
 
@@ -123,7 +123,7 @@ async def main(request: Request):
 @app.get("/prediction/")
 async def read_root(request: Request):
     try:
-        users = client.get_users(usernames=['GouriCuler'], user_fields=['profile_image_url'])
+        
         
         tweets  = client.search_recent_tweets(query=request.query_params['query']+' '+"lang:en" ,
         media_fields=['preview_image_url', 'url'],
