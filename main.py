@@ -113,7 +113,8 @@ def analys(score):
         return "neutral"
 
 @app.get("/image")
-async def main():
+async def main(request: Request):
+    print(request.query_params['query'])
     return FileResponse("my_twitter_wordcloud_1.png")
 
 
@@ -124,7 +125,7 @@ async def read_root(request: Request):
     try:
         users = client.get_users(usernames=['GouriCuler'], user_fields=['profile_image_url'])
         
-        tweets  = client.search_recent_tweets(query=request.query_params['query'] ,
+        tweets  = client.search_recent_tweets(query=request.query_params['query']+' '+"lang:en" ,
         media_fields=['preview_image_url', 'url'],
         tweet_fields=["id","context_annotations", "author_id",  "created_at", "text", "source", "lang", "in_reply_to_user_id", "conversation_id", "public_metrics", "referenced_tweets", "reply_settings","geo"],
         user_fields=["name", "username", "location", "verified", "description", "created_at","profile_image_url"],
